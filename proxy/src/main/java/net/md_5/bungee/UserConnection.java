@@ -173,12 +173,6 @@ public final class UserConnection implements ProxiedPlayer
         ch.write( packet );
     }
 
-    @Deprecated
-    public boolean isActive()
-    {
-        return !ch.isClosed();
-    }
-
     @Override
     public void setDisplayName(String name)
     {

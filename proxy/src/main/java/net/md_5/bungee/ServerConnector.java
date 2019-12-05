@@ -270,7 +270,7 @@ public class ServerConnector extends PacketHandler
         }
 
         // TODO: Fix this?
-        if ( !user.isActive() )
+        if ( !user.isConnected() )
         {
             server.disconnect( "Quitting" );
             // Silly server admins see stack trace and die
