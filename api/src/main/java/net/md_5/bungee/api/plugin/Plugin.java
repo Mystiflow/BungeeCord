@@ -91,6 +91,11 @@ public class Plugin
     //
     private ExecutorService service;
 
+    public boolean isExecutorReady()
+    {
+        return service != null;
+    }
+
     @Deprecated
     public ExecutorService getExecutorService()
     {

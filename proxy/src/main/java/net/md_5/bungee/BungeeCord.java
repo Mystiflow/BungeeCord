@@ -445,7 +445,10 @@ public class BungeeCord extends ProxyServer
                         getLogger().log( Level.SEVERE, "Exception disabling plugin " + plugin.getDescription().getName(), t );
                     }
                     getScheduler().cancel( plugin );
-                    plugin.getExecutorService().shutdownNow();
+                    if ( plugin.isExecutorReady() )
+                    {
+                        plugin.getExecutorService().shutdownNow();
+                    }
                 }
 
                 getLogger().info( "Closing IO threads" );
