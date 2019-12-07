@@ -205,14 +205,9 @@ public class ServerConnector extends PacketHandler
 
         if ( user.getServer() == null )
         {
-            // Once again, first connection
-            user.setClientEntityId( login.getEntityId() );
-            user.setServerEntityId( login.getEntityId() );
-
             // Set tab list size, TODO: what shall we do about packet mutability
             Login modLogin = new Login( login.getEntityId(), login.getGameMode(), (byte) login.getDimension(), login.getDifficulty(),
                     (byte) user.getPendingConnection().getListener().getTabListSize(), login.getLevelType(), login.getViewDistance(), login.isReducedDebugInfo() );
-
             user.unsafe().sendPacket( modLogin );
 
             ByteBuf brand = ByteBufAllocator.DEFAULT.heapBuffer();
@@ -249,16 +244,18 @@ public class ServerConnector extends PacketHandler
             user.getSentBossBars().clear();
 
             // Update debug info from login packet
-            user.unsafe().sendPacket( new EntityStatus( user.getClientEntityId(), login.isReducedDebugInfo() ? EntityStatus.DEBUG_INFO_REDUCED : EntityStatus.DEBUG_INFO_NORMAL ) );
+            user.unsafe().sendPacket( new EntityStatus( login.getEntityId(), login.isReducedDebugInfo() ? EntityStatus.DEBUG_INFO_REDUCED : EntityStatus.DEBUG_INFO_NORMAL ) );
 
             user.setDimensionChange( true );
-            if ( login.getDimension() == user.getDimension() )
+            boolean respawn = login.getDimension() == user.getDimension();
+            Login modLogin = new Login( login.getEntityId(), login.getGameMode(), (byte) ( ( respawn ) ? ( login.getDimension() >= 0 ) ? -1 : 0 : login.getDimension() ), login.getDifficulty(),
+                    (byte) user.getPendingConnection().getListener().getTabListSize(), login.getLevelType(), login.getViewDistance(), login.isReducedDebugInfo() );
+            user.unsafe().sendPacket( modLogin );
+            if ( respawn )
             {
-                user.unsafe().sendPacket( new Respawn( ( login.getDimension() >= 0 ? -1 : 0 ), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
+                user.unsafe().sendPacket( new Respawn( login.getDimension(), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
             }
 
-            user.setServerEntityId( login.getEntityId() );
-            user.unsafe().sendPacket( new Respawn( login.getDimension(), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
             if ( user.getPendingConnection().getVersion() >= ProtocolConstants.MINECRAFT_1_14 )
             {
                 user.unsafe().sendPacket( new ViewDistance( login.getViewDistance() ) );
