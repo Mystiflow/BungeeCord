@@ -23,6 +23,6 @@ public class RemoteQuery
                 .group( eventLoop )
                 .handler( new QueryHandler( bungee, listener ) )
                 .localAddress( address )
-                .bind().addListener( future );
+                .bind().addListeners( future, ChannelFutureListener.CLOSE_ON_FAILURE );
     }
 }

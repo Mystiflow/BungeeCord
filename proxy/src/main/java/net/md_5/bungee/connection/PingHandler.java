@@ -49,6 +49,7 @@ public class PingHandler extends PacketHandler
     public void exception(Throwable t) throws Exception
     {
         callback.done( null, t );
+        channel.close();
     }
 
     @Override

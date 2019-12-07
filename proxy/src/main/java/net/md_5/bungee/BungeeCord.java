@@ -335,7 +335,7 @@ public class BungeeCord extends ProxyServer
                     .childHandler( PipelineUtils.SERVER_CHILD )
                     .group( eventLoops )
                     .localAddress( info.getHost() )
-                    .bind().addListener( listener );
+                    .bind().addListeners( listener, ChannelFutureListener.CLOSE_ON_FAILURE );
 
             if ( info.isQueryEnabled() )
             {

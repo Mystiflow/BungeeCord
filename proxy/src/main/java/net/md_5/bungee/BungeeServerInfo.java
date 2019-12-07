@@ -153,6 +153,6 @@ public class BungeeServerInfo implements ServerInfo
                 .option( ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000 ) // TODO: Configurable
                 .remoteAddress( getAddress() )
                 .connect()
-                .addListener( listener );
+                .addListeners( listener, ChannelFutureListener.CLOSE_ON_FAILURE );
     }
 }
