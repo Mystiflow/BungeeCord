@@ -59,6 +59,7 @@ public class Scoreboard
     public void addScore(Score score)
     {
         Preconditions.checkNotNull( score, "score" );
+        Preconditions.checkArgument( !scores.containsKey( score.getItemName() ), "Score %s already exists in this scoreboard");
         scores.put( score.getItemName(), score );
     }
 

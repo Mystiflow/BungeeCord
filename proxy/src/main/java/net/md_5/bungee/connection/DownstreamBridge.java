@@ -164,9 +164,16 @@ public class DownstreamBridge extends PacketHandler
         switch ( score.getAction() )
         {
             case 0:
-                Score s = new Score( score.getItemName(), score.getScoreName(), score.getValue() );
-                serverScoreboard.removeScore( score.getItemName() );
-                serverScoreboard.addScore( s );
+                Score s = serverScoreboard.getScore( score.getItemName() );
+                if ( s != null )
+                {
+                    s.setScoreName( score.getScoreName() );
+                    s.setValue( score.getValue() );
+                } else
+                {
+                    s = new Score( score.getItemName(), score.getScoreName(), score.getValue() );
+                    serverScoreboard.addScore( s );
+                }
                 break;
             case 1:
                 serverScoreboard.removeScore( score.getItemName() );

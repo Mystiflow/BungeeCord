@@ -1,11 +1,13 @@
 package net.md_5.bungee.api.score;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
  * Represents a scoreboard score entry.
  */
 @Data
+@AllArgsConstructor
 public class Score
 {
 
@@ -16,9 +18,9 @@ public class Score
     /**
      * Unique name of the score.
      */
-    private final String scoreName; // Score
+    private String scoreName; // Score
     /**
      * Value of the score.
      */
-    private final int value;
+    private int value;
 }
