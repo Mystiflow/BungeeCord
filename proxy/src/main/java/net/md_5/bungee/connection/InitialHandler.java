@@ -388,13 +388,13 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             return;
         }
 
-        if ( !onlineMode && oldClientCheck() )
+        if ( !oldClientKicked() )
         {
-            // Prevent the following code from performing before previous client is disconnected
-            return;
+            // We avoid running the handlePreLogin if an old client is kicked
+            // because if so, the following method is invoked after the previous
+            // client has been confirmed as disconnected
+            handlePreLogin();
         }
-
-        handlePreLogin();
     }
 
     public void handlePreLogin()
@@ -483,7 +483,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         HttpClient.get( authURL, ch.getHandle().eventLoop(), handler );
     }
 
-    private boolean oldClientCheck()
+    /**
+     * Kicks a previous connection (if there is one)
+     *
+     * @return if previous connection was kicked
+     */
+    private boolean oldClientKicked()
     {
         boolean replacedClient = false;
         if ( isOnlineMode() )
