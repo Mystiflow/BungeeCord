@@ -1,5 +1,6 @@
 package net.md_5.bungee.api.connection;
 
+import io.netty.channel.Channel;
 import java.net.InetSocketAddress;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.protocol.DefinedPacket;
@@ -67,6 +68,13 @@ public interface Connection
 
     interface Unsafe
     {
+
+        /**
+         * Gets the Netty channel of this connection
+         *
+         * @return the channel
+         */
+        Channel getChannel();
 
         /**
          * Send a packet to this connection.

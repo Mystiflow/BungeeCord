@@ -141,6 +141,12 @@ public final class UserConnection implements ProxiedPlayer
     private final Unsafe unsafe = new Unsafe()
     {
         @Override
+        public Channel getChannel()
+        {
+            return ch.getHandle();
+        }
+
+        @Override
         public void sendPacket(DefinedPacket packet)
         {
             ch.write( packet );

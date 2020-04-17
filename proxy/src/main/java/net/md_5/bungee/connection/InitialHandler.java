@@ -3,6 +3,7 @@ package net.md_5.bungee.connection;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import io.netty.channel.Channel;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.URLEncoder;
@@ -83,6 +84,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     private State thisState = State.HANDSHAKE;
     private final Unsafe unsafe = new Unsafe()
     {
+        @Override
+        public Channel getChannel()
+        {
+            return ch.getHandle();
+        }
+
         @Override
         public void sendPacket(DefinedPacket packet)
         {
@@ -368,6 +375,17 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             return;
         }
 
+        if ( !onlineMode && oldClientCheck() )
+        {
+            // Prevent the following code from performing before previous client is disconnected
+            return;
+        }
+
+        handlePreLogin();
+    }
+
+    public void handlePreLogin()
+    {
         Callback<PreLoginEvent> callback = new Callback<PreLoginEvent>()
         {
 
@@ -452,8 +470,9 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         HttpClient.get( authURL, ch.getHandle().eventLoop(), handler );
     }
 
-    private void finish()
+    private boolean oldClientCheck()
     {
+        boolean replacedClient = false;
         if ( isOnlineMode() )
         {
             // Check for multiple connections
@@ -462,6 +481,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             if ( oldName != null )
             {
                 // TODO See #1218
+                replacedClient = true;
+                ( (UpstreamBridge) oldName.unsafe().getChannel().pipeline().get( HandlerBoss.class ).getHandler() ).setReplaceClient( this );
                 oldName.disconnect( bungee.getTranslation( "already_connected_proxy" ) );
             }
             // And then also for their old UUID
@@ -469,6 +490,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             if ( oldID != null )
             {
                 // TODO See #1218
+                replacedClient = true;
+                ( (UpstreamBridge) oldID.unsafe().getChannel().pipeline().get( HandlerBoss.class ).getHandler() ).setReplaceClient( this );
                 oldID.disconnect( bungee.getTranslation( "already_connected_proxy" ) );
             }
         } else
@@ -479,11 +502,14 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             {
                 // TODO See #1218
                 disconnect( bungee.getTranslation( "already_connected_proxy" ) );
-                return;
             }
-
         }
 
+        return replacedClient;
+    }
+
+    private void finish()
+    {
         offlineId = UUID.nameUUIDFromBytes( ( "OfflinePlayer:" + getName() ).getBytes( Charsets.UTF_8 ) );
         if ( uniqueId == null )
         {

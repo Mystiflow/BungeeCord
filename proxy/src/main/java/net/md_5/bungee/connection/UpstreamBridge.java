@@ -8,6 +8,8 @@ import io.netty.channel.Channel;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.UserConnection;
 import net.md_5.bungee.Util;
@@ -33,6 +35,10 @@ import net.md_5.bungee.protocol.packet.TabCompleteResponse;
 
 public class UpstreamBridge extends PacketHandler
 {
+
+    @Getter
+    @Setter
+    private InitialHandler replaceClient;
 
     private final ProxyServer bungee;
     private final UserConnection con;
@@ -61,6 +67,12 @@ public class UpstreamBridge extends PacketHandler
         bungee.getPluginManager().callEvent( event );
         con.getTabListHandler().onDisconnect();
         BungeeCord.getInstance().removeConnection( con );
+
+        if ( replaceClient != null )
+        {
+            replaceClient.handlePreLogin();
+            replaceClient = null;
+        }
 
         if ( con.getServer() != null )
         {

@@ -1,6 +1,7 @@
 package net.md_5.bungee;
 
 import com.google.common.base.Preconditions;
+import io.netty.channel.Channel;
 import java.net.InetSocketAddress;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,12 @@ public class ServerConnection implements Server
 
     private final Unsafe unsafe = new Unsafe()
     {
+        @Override
+        public Channel getChannel()
+        {
+            return ch.getHandle();
+        }
+
         @Override
         public void sendPacket(DefinedPacket packet)
         {
