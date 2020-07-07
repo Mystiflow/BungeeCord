@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 import java.util.Set;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ItemTag;
+import net.md_5.bungee.api.chat.ItemTagSerializer;
 import net.md_5.bungee.api.chat.KeybindComponent;
 import net.md_5.bungee.api.chat.ScoreComponent;
 import net.md_5.bungee.api.chat.SelectorComponent;
@@ -38,7 +39,7 @@ public class ComponentSerializer implements JsonDeserializer<BaseComponent>
             registerTypeAdapter( Entity.class, new EntitySerializer() ).
             registerTypeAdapter( Text.class, new TextSerializer() ).
             registerTypeAdapter( Item.class, new ItemSerializer() ).
-            registerTypeAdapter( ItemTag.class, new ItemTag.Serializer() ).
+            registerTypeAdapter( ItemTag.class, new ItemTagSerializer() ).
             create();
 
     public static final ThreadLocal<Set<BaseComponent>> serializedComponents = new ThreadLocal<Set<BaseComponent>>();

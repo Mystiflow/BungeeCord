@@ -5,14 +5,41 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.NbtUtil;
 import net.md_5.bungee.api.chat.hover.content.Item;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.junit.Assert;
 import org.junit.Test;
+import se.llbit.nbt.CompoundTag;
 
 public class ComponentsTest
 {
+
+    @Test
+    public void testItemTag()
+    {
+        ItemTag.PropertyInfo.Builder builder = ItemTag.PropertyInfo.builder();
+        builder.enchantment( new ItemTag.PropertyInfo.Enchantment( "minecraft:strength", 1 ) );
+        builder.lore( new BaseComponent[]
+        {
+            new TextComponent( "Lore - Description" )
+        } );
+        builder.name( new ComponentBuilder( "Name" ).create() );
+        ItemTag itemTag = ItemTag.ofProperties( builder.build() );
+        ItemTag.PropertyInfo compare = itemTag.getProperties();
+        itemTag.getProperties().copyTo( compare );
+        String expected =
+            "{Enchantments:[{id:\"minecraft:strength\",lvl:1}],display"
+                + ":{Name:\"{\\\"text\\\":\\\"Name\\\"}\""
+                + ",lore:[\"{\\\"text\\\":\\\"Lore - Description\\\"}\"]}}";
+        NbtUtil.fromString( expected );
+        Assert.assertEquals( expected, itemTag.getNbt() );
+
+        CompoundTag tag = itemTag.tagFromProperties();
+        itemTag.updatePropertiesFromTag( tag );
+        Assert.assertEquals( compare, itemTag.getProperties() );
+    }
 
     @Test
     public void testItemParse()
