@@ -29,6 +29,18 @@ import se.llbit.nbt.Tag;
 public final class ItemTag
 {
 
+    private static final List<Property> CUSTOM_PROPERTIES = new ArrayList<>();
+
+    /**
+     * Adds a custom property. This property can handle data seen on the NBT Compound.
+     *
+     * @param property the property to add
+     */
+    public static void addCustomProperty(Property property)
+    {
+        CUSTOM_PROPERTIES.add( property );
+    }
+
     private String nbt;
     /**
      * The properties of this ItemTag.
@@ -43,6 +55,28 @@ public final class ItemTag
 
     private ItemTag()
     {
+    }
+
+    /**
+     * API for plugins to create custom properties in addition to the default ones.
+     * Non trivial things weren't included here as it seems unnecessary: e.g. Leather Armor Color.
+     */
+    public interface Property
+    {
+
+        /**
+         * Serialises this property to the root compound.
+         *
+         * @param root the compound to be serialised to
+         */
+        void serialise(CompoundTag root);
+
+        /**
+         * Deserialises this property from the root compound.
+         *
+         * @param root the compound deserialising from
+         */
+        void deserialise(CompoundTag root);
     }
 
     @EqualsAndHashCode
@@ -70,6 +104,11 @@ public final class ItemTag
             private final int level;
         }
 
+        /**
+         * Copies these properties to another {@link #PropertyInfo}
+         *
+         * @param propertyInfo info to copy to
+         */
         public void copyTo(PropertyInfo propertyInfo)
         {
             propertyInfo.name = name;
@@ -98,15 +137,24 @@ public final class ItemTag
         return itemTag;
     }
 
+    // Lombok converts it to AbstractList, we want ArrayList
     private void restoreLists()
     {
-        // Lombok converts it to AbstractList, we want ArrayList
         properties.enchantments = new ArrayList<>( properties.enchantments );
         properties.lore = new ArrayList<>( properties.lore );
     }
 
+    /**
+     * Deserialises the CompoundTag update the data of the fields in PropertyInfo.
+     *
+     * @param tag tag to deserialise
+     */
     protected void updatePropertiesFromTag(CompoundTag tag)
     {
+        for ( Property property : CUSTOM_PROPERTIES )
+        {
+            property.deserialise( tag );
+        }
         if ( has( tag, "Enchantments" ) )
         {
             ListTag enchList = tag.get( "Enchantments" ).asList();
@@ -139,21 +187,29 @@ public final class ItemTag
             if ( has( display, "lore" ) )
             {
                 ListTag loreList = display.get( "lore" ).asList();
-                int i = 0;
                 for ( SpecificTag itLore : loreList )
                 {
-                    BaseComponent[] temp;
-                    properties.lore.add( temp = ComponentSerializer.parse( itLore.stringValue() ) );
+                    properties.lore.add( ComponentSerializer.parse( itLore.stringValue() ) );
                 }
             }
         }
     }
 
+    /**
+     * Converts {@link PropertyInfo} into a {@link CompoundTag}
+     *
+     * @return the tag
+     */
     protected CompoundTag tagFromProperties()
     {
         Preconditions.checkNotNull( properties, "properties" );
 
         CompoundTag headTag = new CompoundTag();
+        for ( Property property : CUSTOM_PROPERTIES )
+        {
+            property.serialise( headTag );
+        }
+
         if ( !properties.enchantments.isEmpty() )
         {
             ListTag enchArray = new ListTag( CompoundTag.TAG_COMPOUND, new ArrayList<>() );
