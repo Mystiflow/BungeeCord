@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,20 +79,40 @@ public class BaseComponentSerializer
                 {
                     continue;
                 }
-                Content[] list;
                 JsonElement contents = event.get( type );
-                if ( contents.isJsonArray() )
+                try
                 {
-                    list = context.deserialize( contents, HoverEvent.getClass( action, true ) );
-                } else
-                {
-                    list = new Content[]
+                    Content[] list;
+                    if ( contents.isJsonArray() )
                     {
-                        context.deserialize( contents, HoverEvent.getClass( action, false ) )
-                    };
-                }
+                        list = context.deserialize( contents, HoverEvent.getClass( action, true ) );
+                    } else
+                    {
+                        list = new Content[]
+                        {
+                            context.deserialize( contents, HoverEvent.getClass( action, false ) )
+                        };
+                    }
 
-                hoverEvent = new HoverEvent( action, new ArrayList<>( Arrays.asList( list ) ) );
+                    hoverEvent = new HoverEvent( action, new ArrayList<>( Arrays.asList( list ) ) );
+                } catch ( JsonParseException ex )
+                {
+                    // Plugins previously had support to pass BaseComponent[] into any action.
+                    // If the GSON cannot be parsed as Content, attempt to parse the JSON into
+                    // BaseComponent[]
+                    BaseComponent[] components;
+                    if ( contents.isJsonArray() )
+                    {
+                        components = context.deserialize( contents, BaseComponent[].class );
+                    } else
+                    {
+                        components = new BaseComponent[]
+                                {
+                                        context.deserialize( contents, BaseComponent.class )
+                                };
+                    }
+                    hoverEvent = new HoverEvent( action, components );
+                }
 
                 // stop the loop as soon as either one is found
                 break;
